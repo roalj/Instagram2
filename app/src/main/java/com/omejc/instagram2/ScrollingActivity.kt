@@ -4,14 +4,30 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Base64
 import android.util.Log
-import com.google.android.material.snackbar.Snackbar
-import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
+import androidx.appcompat.app.AppCompatActivity
+import com.android.volley.*
+import com.android.volley.toolbox.JsonObjectRequest
+import com.android.volley.toolbox.StringRequest
+import com.android.volley.toolbox.Volley
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_scrolling.*
+import org.json.JSONObject
+import java.io.BufferedReader
+import java.io.ByteArrayOutputStream
+import java.io.InputStreamReader
+import java.net.HttpURLConnection
+import java.net.URL
+import java.net.URLEncoder
+
 
 class ScrollingActivity : AppCompatActivity() {
+    val TAG = "ScrollingActivity";
+    val url = "http://34.76.186.88/image-upload/api/images/saveImage"
+    //val url = "http://34.76.186.88/image-upload/api/images"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,8 +49,10 @@ class ScrollingActivity : AppCompatActivity() {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
+        val imageData = getJsonObject("testStringBase", "testTitle")
+
         when(item.itemId){
-            R.id.action_camera -> dispatchTakePictureIntent()
+            R.id.action_camera -> dispatchTakePictureIntent()//sendGetRequest()//makeRequest(imageData)
         }
 
         return when (item.itemId) {
@@ -53,12 +71,109 @@ class ScrollingActivity : AppCompatActivity() {
         }
     }
 
+    fun sendGetRequest() {
+
+        //var reqParam = URLEncoder.encode("username", "UTF-8") + "=" + URLEncoder.encode(userName, "UTF-8")
+        //reqParam += "&" + URLEncoder.encode("password", "UTF-8") + "=" + URLEncoder.encode(password, "UTF-8")
+        Thread {
+            val mURL = URL("http://34.76.186.88/comments/api/comments");
+
+            with(mURL.openConnection() as HttpURLConnection) {
+                // optional default is GET
+                requestMethod = "GET"
+
+                println("URL : $url")
+                println("Response Code : $responseCode")
+
+                BufferedReader(InputStreamReader(inputStream)).use {
+                    val response = StringBuffer()
+
+                    var inputLine = it.readLine()
+                    while (inputLine != null) {
+                        response.append(inputLine)
+                        inputLine = it.readLine()
+                    }
+                    it.close()
+                    println("Response : $response")
+                }
+            }
+            runOnUiThread {
+                //Update UI
+            }
+        }.start()
+
+    }
+
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             val imageBitmap = data?.extras?.get("data") as Bitmap
-            Log.d("hey", "image: " + imageBitmap)
-            // create rest request
-           // imageView.setImageBitmap(imageBitmap)
+            val imageData = getJsonObject(bitmapToBase64(imageBitmap), "testTitle")
+            Log.d(TAG, "image data:$imageData")
+
+            makeRequest(imageData)
         }
     }
+
+    private fun bitmapToBase64(bitmap: Bitmap): String {
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
+        val byteArray: ByteArray = byteArrayOutputStream.toByteArray()
+        val asd:String = Base64.encodeToString(byteArray, Base64.DEFAULT)
+        return asd
+    }
+
+    private fun makeRequest(imageData: JSONObject){
+        val queue = Volley.newRequestQueue(this)
+        val jsonObjectRequest = getJsonObjectRequest(imageData)
+        queue.add(jsonObjectRequest)
+    }
+
+    private fun getJsonObjectRequest(imageData: JSONObject): JsonObjectRequest{
+        return object : JsonObjectRequest(
+            Method.POST, url, imageData,
+            Response.Listener { response -> Log.d("TAG", response.toString()) },
+            Response.ErrorListener { error -> Log.e("TAG", error.message, error) }) {
+            //no semicolon or coma
+            @Throws(AuthFailureError::class)
+            override fun getHeaders(): Map<String, String> {
+                val params: MutableMap<String, String> =
+                    HashMap()
+                params["Content-Type"] = "application/json; charset=utf-8";
+                return params
+            }
+        }
+    }
+
+    private fun request2(){
+// ...
+
+// Instantiate the RequestQueue.
+        val queue = Volley.newRequestQueue(this)
+        //val url = "http://www.google.com"
+
+// Request a string response from the provided URL.
+        val stringRequest = StringRequest(Request.Method.GET, url,
+            Response.Listener<String> { response ->
+                // Display the first 500 characters of the response string.
+                Log.d(TAG, "Response is: ${response.substring(0, 500)}")
+            },
+            Response.ErrorListener{
+
+                error ->
+                Log.d(TAG, "That didn't work!"+error.networkResponse)
+                Log.e(TAG, "/ request fail! Error: ${error.message}")
+            })
+            stringRequest.retryPolicy = (DefaultRetryPolicy(60000, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT))
+            queue.add(stringRequest)
+    }
+
+    private fun getJsonObject(image: String, title: String): JSONObject{
+        val params = HashMap<String,String>()
+        Log.d("TAG", image)
+        params["title"] = "testTitle"
+        params["content"] = image
+        return JSONObject(params as Map<*, *>)
+    }
+
 }
