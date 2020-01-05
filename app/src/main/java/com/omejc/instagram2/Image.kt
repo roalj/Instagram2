@@ -7,5 +7,6 @@ class Image() {
     val title: String = ""
     val url: String = ""
     val width: Int = 0
+    val mongoId: String = ""
 
 }

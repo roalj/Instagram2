@@ -1,21 +1,20 @@
 package com.omejc.instagram2
 
 import android.content.Context
+import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.fragment.app.FragmentTransaction
 import androidx.recyclerview.widget.RecyclerView
 import com.android.volley.Response
 import com.google.gson.GsonBuilder
-import com.omejc.instagram2.dummy.DummyContent
-import com.omejc.instagram2.dummy.DummyContent.DummyItem
 import org.json.JSONArray
-import org.json.JSONException
+import java.util.*
+import kotlin.concurrent.schedule
+
 
 /**
  * A fragment representing a list of Items.
@@ -24,39 +23,52 @@ import org.json.JSONException
  */
 class ImageFragment : Fragment() {
 
-    // TODO: Customize parameters
     private var columnCount = 1
     private var TAG = "ImageFragment"
     private var listener: OnListFragmentInteractionListener? = null
+    private var rootView: View? = null
+    private lateinit var mContext: Context
+    private lateinit var listView:RecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        NukeSSLCerts.nuke()
         arguments?.let { columnCount = it.getInt(ARG_COLUMN_COUNT) }
-
-        RequestHelper.makeRequest(context, myImageListener)
-
+        CatalogRequestHelper.makeRequest(context, myImageListener)
     }
-
 
     private var myImageListener: Response.Listener<JSONArray> =
         Response.Listener { response ->
             val gson = GsonBuilder().create()
             val images = gson.fromJson(response.toString(), Array<Image>::class.java).toList()
-            Log.d(TAG, "image length:$images")
+           /* Log.d(TAG, "image length:$images")
             for (name:Image in images){
                 Log.d(TAG, "!!!name${name.title}")
                 Log.d(TAG, name.desciption)
             }
+*/
+            val adapter = MyImageRecyclerViewAdapter(images, listener, mContext)
+            listView.adapter = adapter
         }
+
+    public fun refresh(){
+        Timer("SettingUp", false).schedule(2000) {
+            CatalogRequestHelper.makeRequest(context, myImageListener)
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_image_list, container, false)
+        this.rootView = view;
+
+        listView = view.findViewById(R.id.list)
+        mContext = view.context
 
         // Set the adapter
-        if (view is RecyclerView) {
+      /*  if (view is RecyclerView) {
             with(view) {
                 layoutManager = when {
                     columnCount <= 1 -> LinearLayoutManager(context)
@@ -64,7 +76,7 @@ class ImageFragment : Fragment() {
                 }
                 adapter = MyImageRecyclerViewAdapter(DummyContent.ITEMS, listener)
             }
-        }
+        }*/
         return view
     }
 
@@ -85,15 +97,12 @@ class ImageFragment : Fragment() {
 
     interface OnListFragmentInteractionListener {
         // TODO: Update argument type and name
-        fun onListFragmentInteraction(item: DummyItem?)
+        fun onListFragmentInteraction(item: Image?)
     }
 
     companion object {
-
-        // TODO: Customize parameter argument names
         const val ARG_COLUMN_COUNT = "column-count"
 
-        // TODO: Customize parameter initialization
         @JvmStatic
         fun newInstance(columnCount: Int) =
             ImageFragment().apply {

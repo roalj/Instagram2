@@ -8,10 +8,10 @@ import com.android.volley.toolbox.JsonArrayRequest
 import com.android.volley.toolbox.Volley
 import org.json.JSONArray
 
-class RequestHelper {
+class CatalogRequestHelper {
 
     companion object {
-        private val TAG = RequestHelper::class.java.name
+        private val TAG = CatalogRequestHelper::class.java.name
         fun makeRequest(context: Context?, myListener:Response.Listener<JSONArray>) {
             val requestQueue = Volley.newRequestQueue(context)
             // Initialize a new JsonArrayRequest instance

@@ -7,4 +7,5 @@ public class Constants {
     public static final String SAVE_IMAGE_URL_IMAGE_UPLOAD = BASE_URL +"image-upload/api/images/saveImage";
 
 
+    public static final int REQUEST_IMAGE_CAPTURE = 1;
 }
