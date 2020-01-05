@@ -14,25 +14,34 @@ import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.google.android.material.snackbar.Snackbar
+import com.omejc.instagram2.ImageFragment.OnListFragmentInteractionListener
+import com.omejc.instagram2.dummy.DummyContent
 import kotlinx.android.synthetic.main.activity_scrolling.*
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.ByteArrayOutputStream
+import java.io.InputStream
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
+import java.security.KeyStore
+import java.security.cert.Certificate
+import java.security.cert.CertificateFactory
+import java.security.cert.X509Certificate
+import javax.net.ssl.*
 
 
-class ScrollingActivity : AppCompatActivity() {
+class ScrollingActivity : AppCompatActivity(), OnListFragmentInteractionListener{
     val TAG = "ScrollingActivity";
-    val url = "http://34.76.186.88/image-upload/api/images/saveImage"
+    val url = "https://34.76.186.88/image-upload/api/images/saveImage"
     //val url = "http://34.76.186.88/image-upload/api/images"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_scrolling)
         setSupportActionBar(toolbar)
+        NukeSSLCerts.nuke()
         fab.setOnClickListener { view ->
             Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show()
@@ -52,7 +61,7 @@ class ScrollingActivity : AppCompatActivity() {
         val imageData = getJsonObject("testStringBase", "testTitle")
 
         when(item.itemId){
-            R.id.action_camera -> dispatchTakePictureIntent()//sendGetRequest()//makeRequest(imageData)
+            R.id.action_camera -> makeRequest(imageData)//dispatchTakePictureIntent()//sendGetRequest()//makeRequest(imageData)
         }
 
         return when (item.itemId) {
@@ -70,40 +79,6 @@ class ScrollingActivity : AppCompatActivity() {
             }
         }
     }
-
-    fun sendGetRequest() {
-
-        //var reqParam = URLEncoder.encode("username", "UTF-8") + "=" + URLEncoder.encode(userName, "UTF-8")
-        //reqParam += "&" + URLEncoder.encode("password", "UTF-8") + "=" + URLEncoder.encode(password, "UTF-8")
-        Thread {
-            val mURL = URL("http://34.76.186.88/comments/api/comments");
-
-            with(mURL.openConnection() as HttpURLConnection) {
-                // optional default is GET
-                requestMethod = "GET"
-
-                println("URL : $url")
-                println("Response Code : $responseCode")
-
-                BufferedReader(InputStreamReader(inputStream)).use {
-                    val response = StringBuffer()
-
-                    var inputLine = it.readLine()
-                    while (inputLine != null) {
-                        response.append(inputLine)
-                        inputLine = it.readLine()
-                    }
-                    it.close()
-                    println("Response : $response")
-                }
-            }
-            runOnUiThread {
-                //Update UI
-            }
-        }.start()
-
-    }
-
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
@@ -124,6 +99,7 @@ class ScrollingActivity : AppCompatActivity() {
     }
 
     private fun makeRequest(imageData: JSONObject){
+
         val queue = Volley.newRequestQueue(this)
         val jsonObjectRequest = getJsonObjectRequest(imageData)
         queue.add(jsonObjectRequest)
@@ -145,29 +121,6 @@ class ScrollingActivity : AppCompatActivity() {
         }
     }
 
-    private fun request2(){
-// ...
-
-// Instantiate the RequestQueue.
-        val queue = Volley.newRequestQueue(this)
-        //val url = "http://www.google.com"
-
-// Request a string response from the provided URL.
-        val stringRequest = StringRequest(Request.Method.GET, url,
-            Response.Listener<String> { response ->
-                // Display the first 500 characters of the response string.
-                Log.d(TAG, "Response is: ${response.substring(0, 500)}")
-            },
-            Response.ErrorListener{
-
-                error ->
-                Log.d(TAG, "That didn't work!"+error.networkResponse)
-                Log.e(TAG, "/ request fail! Error: ${error.message}")
-            })
-            stringRequest.retryPolicy = (DefaultRetryPolicy(60000, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT))
-            queue.add(stringRequest)
-    }
-
     private fun getJsonObject(image: String, title: String): JSONObject{
         val params = HashMap<String,String>()
         Log.d("TAG", image)
@@ -175,5 +128,10 @@ class ScrollingActivity : AppCompatActivity() {
         params["content"] = image
         return JSONObject(params as Map<*, *>)
     }
+
+    override fun onListFragmentInteraction(item: DummyContent.DummyItem?) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
 
 }
