@@ -1,4 +1,4 @@
-package com.omejc.instagram2;
+package com.omejc.instagram2.helpers;
 
 import com.android.volley.Response;
 

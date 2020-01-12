@@ -1,15 +1,15 @@
-package com.omejc.instagram2
+package com.omejc.instagram2.requests
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.util.Log
 import android.widget.ImageView
 import com.android.volley.AuthFailureError
 import com.android.volley.Response
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
+import com.omejc.instagram2.helpers.Base64Helper
+import com.omejc.instagram2.helpers.Constants
 import org.json.JSONObject
-import java.lang.ref.WeakReference
 
 class ImageUploadRequest {
 
@@ -24,12 +24,15 @@ class ImageUploadRequest {
 
         public fun getJsonLoadRequest(mongoId: String, imageView: ImageView): JsonObjectRequest {
             return object : JsonObjectRequest(
-                Method.GET, Constants.GET_IMAGE_URL_IMAGE_UPLOAD+"/"+mongoId, null,
+                Method.GET, Constants.GET_IMAGE_URL_IMAGE_UPLOAD +"/"+mongoId, null,
                 Response.Listener { response ->
                         Log.d("TAG", "response LOAD: $response")
                         val content = response.getString("content")
                         Log.d("TAG", "content$content")
-                        val bitmap = Base64Helper.base64ToBitmap(content)
+                        val bitmap =
+                            Base64Helper.base64ToBitmap(
+                                content
+                            )
                         imageView.setImageBitmap(bitmap)
                     },
                 Response.ErrorListener { error -> Log.e("TAG", error.message, error) }) {
@@ -44,9 +47,11 @@ class ImageUploadRequest {
             }
         }
 
+
         public fun getJsonSaveRequest(imageData: JSONObject): JsonObjectRequest {
             return object : JsonObjectRequest(
-                Method.POST, Constants.SAVE_IMAGE_URL_IMAGE_UPLOAD, imageData,
+                Method.POST,
+                Constants.SAVE_IMAGE_URL_IMAGE_UPLOAD, imageData,
                 Response.Listener {
                         response -> Log.d("TAG", response.toString())
                 },
@@ -69,11 +74,6 @@ class ImageUploadRequest {
             queue.add(jsonObjectRequest)
         }
 
-         fun getMongoIdJsonObject(mongoId: String): JSONObject{
-            val params = HashMap<String,String>()
-            params["id"] = mongoId
-            return JSONObject(params as Map<*, *>)
-        }
 
     }
 

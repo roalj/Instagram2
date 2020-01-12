@@ -1,16 +1,17 @@
 package com.omejc.instagram2
 
 import android.content.Context
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentTransaction
 import androidx.recyclerview.widget.RecyclerView
 import com.android.volley.Response
 import com.google.gson.GsonBuilder
+import com.omejc.instagram2.helpers.NukeSSLCerts
+import com.omejc.instagram2.models.Image
+import com.omejc.instagram2.requests.CatalogRequest
 import org.json.JSONArray
 import java.util.*
 import kotlin.concurrent.schedule
@@ -34,26 +35,34 @@ class ImageFragment : Fragment() {
         super.onCreate(savedInstanceState)
         NukeSSLCerts.nuke()
         arguments?.let { columnCount = it.getInt(ARG_COLUMN_COUNT) }
-        CatalogRequestHelper.makeRequest(context, myImageListener)
+        CatalogRequest.makeRequestGetAllImages(context, myImageListener)
     }
 
     private var myImageListener: Response.Listener<JSONArray> =
         Response.Listener { response ->
             val gson = GsonBuilder().create()
             val images = gson.fromJson(response.toString(), Array<Image>::class.java).toList()
+
+
+
+            val tempElements: ArrayList<Image> = ArrayList(images)
+
+            tempElements.reverse()
+           // images = tempElements
            /* Log.d(TAG, "image length:$images")
             for (name:Image in images){
                 Log.d(TAG, "!!!name${name.title}")
                 Log.d(TAG, name.desciption)
             }
+
 */
-            val adapter = MyImageRecyclerViewAdapter(images, listener, mContext)
+            val adapter = MyImageRecyclerViewAdapter(tempElements, listener, mContext)
             listView.adapter = adapter
         }
 
     public fun refresh(){
         Timer("SettingUp", false).schedule(2000) {
-            CatalogRequestHelper.makeRequest(context, myImageListener)
+            CatalogRequest.makeRequestGetAllImages(context, myImageListener)
         }
     }
 

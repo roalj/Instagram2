@@ -1,4 +1,4 @@
-package com.omejc.instagram2
+package com.omejc.instagram2.models
 
 class Image() {
     val desciption: String = ""

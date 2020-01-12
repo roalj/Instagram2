@@ -1,4 +1,4 @@
-package com.omejc.instagram2
+package com.omejc.instagram2.helpers
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -20,8 +20,6 @@ class Base64Helper {
             val decodedString: ByteArray = Base64.decode(imageString,  Base64.DEFAULT)
             return BitmapFactory.decodeByteArray(decodedString, 0, decodedString.size)
         }
-
-
 
     }
 }

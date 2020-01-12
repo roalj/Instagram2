@@ -1,4 +1,4 @@
-package com.omejc.instagram2
+package com.omejc.instagram2.helpers
 
 import android.R
 import android.graphics.Bitmap

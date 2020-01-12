@@ -10,6 +10,11 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import com.omejc.instagram2.ImageFragment.OnListFragmentInteractionListener
+import com.omejc.instagram2.helpers.Base64Helper
+import com.omejc.instagram2.helpers.Constants
+import com.omejc.instagram2.helpers.NukeSSLCerts
+import com.omejc.instagram2.models.Image
+import com.omejc.instagram2.requests.ImageUploadRequest
 import kotlinx.android.synthetic.main.activity_scrolling.*
 import org.json.JSONObject
 
